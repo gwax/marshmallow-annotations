@@ -1,5 +1,6 @@
 import typing
 
+import dataclasses
 from marshmallow import fields, missing
 
 from marshmallow_annotations.converter import BaseConverter
@@ -12,6 +13,13 @@ class SomeType:
 
 
 class SomeTuple(typing.NamedTuple):
+    id: int
+    items: typing.Optional[int] = 0
+    value: typing.Optional[int] = None
+
+
+@dataclasses.dataclass
+class SomeDataClass:
     id: int
     items: typing.Optional[int] = 0
     value: typing.Optional[int] = None
@@ -82,9 +90,18 @@ def test_passes_interior_options_to_list_subtype(registry_):
     assert field.container.as_string
 
 
-def test_defaults_missing(registry_):
+def test_namedtuple_defaults(registry_):
     converter = BaseConverter(registry=registry_)
     generated_fields = converter.convert_all(SomeTuple)
+
+    assert generated_fields['id'].missing == missing
+    assert generated_fields['items'].missing == 0
+    assert generated_fields['value'].missing is None
+
+
+def test_dataclass_defaults(registry_):
+    converter = BaseConverter(registry=registry_)
+    generated_fields = converter.convert_all(SomeDataClass)
 
     assert generated_fields['id'].missing == missing
     assert generated_fields['items'].missing == 0

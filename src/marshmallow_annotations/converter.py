@@ -12,6 +12,11 @@ from .base import (
 )
 from .registry import registry
 
+try:
+    import dataclasses
+except ModuleNotFoundError:
+    dataclasses = None
+
 NoneType = type(None)
 
 
@@ -112,6 +117,11 @@ class BaseConverter(AbstractConverter):
 
     def _get_field_defaults(self, item):
         """Retrieve default values if item is a namedtuple."""
+        if dataclasses is not None and hasattr(item, '__dataclass_fields__'):
+            return {
+                k: v.default for
+                k, v in item.__dataclass_fields__.items() if
+                v.default is not dataclasses.MISSING}
         if hasattr(item, '_field_defaults'):
             return item._field_defaults
         else:
